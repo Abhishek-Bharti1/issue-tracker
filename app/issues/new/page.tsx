@@ -10,6 +10,7 @@ import { createIssueSchema } from '@/app/validationSchema';
 import { z } from 'zod';
 import dynamic from 'next/dynamic';
 import ErrorMessage from '@/app/components/ErrorMessage';
+import Spinner from '@/app/components/Spinner';
 const SimpleMDE = dynamic(() => import("react-simplemde-editor"), {
   ssr: false,
 });
@@ -26,6 +27,7 @@ const NewIssuePage = () => {
   });
   const router = useRouter();
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
   return (
     <div className='max-w-xl'>
       {error && <Callout.Root color='red' className='mb-5'>
@@ -34,10 +36,12 @@ const NewIssuePage = () => {
       <form
         className='space-y-3'
         onSubmit={handleSubmit(async (data) => {
+          setLoading(true);
           try {
             await axios.post('/api/issues', data);
             router.push('/issues');
           } catch (error) {
+            setLoading(false);
             setError('An unexpected error occured');
           }
         })}>
@@ -52,7 +56,7 @@ const NewIssuePage = () => {
           render={({ field }) => <SimpleMDE placeholder='Description' {...field} />}
         />
         <ErrorMessage>{errors.description?.message}</ErrorMessage>
-        <Button>Submit New Issue</Button>
+        <Button disabled={loading}>Submit New Issue {loading && <Spinner />}</Button>
       </form>
     </div>
   )
